@@ -10,11 +10,11 @@ import java.util.ArrayList;
 
 public class Printer {
 
-	static final double startfrequency = 20000;
-	static final double endfrequency = 20200;
-	static final double pixeltime = 2;
+	static final double startfrequency = 19000;
+	static final double endfrequency = 21000;
+	static final double pixeltime = 0.8;
 	static final double amplitude = 1;
-	static final double minPixWidth = 20;
+	static final double minPixWidth = 10;
 	
 	public void printAudio(double[][] image) throws Exception {
 		
@@ -22,31 +22,41 @@ public class Printer {
 		int sizex = image.length;
 		int sizey = image[0].length;
 
+		System.out.println("sizex " + sizex);
+		System.out.println("sizey " + sizey);
+		
+		
 		//check, if enough pixels are available in frequency spectrum
 		double frequencySpectrum = endfrequency - startfrequency;
 		int possiblePixels = (int) Math.floor(frequencySpectrum / minPixWidth);
 		if (sizex > possiblePixels) throw new Exception("Picture to big / not enough frequency width");
 		
 		//save frequencies for x-spectrum in array
-		double[] pixelfrequencies = new double[sizex];
-		double pixelWidth = Math.floor(frequencySpectrum / (double) sizex);
-		for (int i = 0; i < sizex; i++) {
+		double[] pixelfrequencies = new double[sizey];
+		double pixelWidth = Math.floor(frequencySpectrum / (double) sizey);
+		for (int i = 0; i < sizey; i++) {
 			pixelfrequencies[i] = startfrequency + i*pixelWidth;
 		}
 		
-		//print out all x-rows
+		//save all frequencies in Array of ArrayLists of doubles
 		StdAudio audio = new StdAudio();
-		ArrayList<Double> tmpFreq = new ArrayList<Double>();
-		for (int i = 0; i < sizey; i++) {
-			tmpFreq.clear();
-			for (int j = 0; j < sizex; j++) {
-				if (image[i][j] > 0.5) tmpFreq.add(pixelfrequencies[j]);
+		ArrayList<double[]> freqArrays = new ArrayList<double[]>();
+		for (int i = 0; i < sizex; i++) {
+			ArrayList<Double> tmpRow = new ArrayList<Double>();
+			for (int j = 0; j < sizey; j++) {
+				if (image[i][j] > 0.5) tmpRow.add(pixelfrequencies[j]);
 			}
-			double[] freqs = new double[tmpFreq.size()];
-			for (int j = 0; j < freqs.length; j++) {
-				freqs[j] = tmpFreq.remove(0);
+			double[] tmpRowArr = new double[tmpRow.size()];
+			for (int j = 0; j < tmpRowArr.length; j++) {
+				tmpRowArr[j] = tmpRow.remove(0);
 			}
-			final double[] sound = audio.multipleNotes(freqs, 2, 1);
+			freqArrays.add(tmpRowArr);
+			
+		}
+		
+		//Play sounds
+		for (int i = 0; i < freqArrays.size(); i++) {
+			final double[] sound = audio.multipleNotes(freqArrays.get(i), pixeltime, amplitude);
 			audio.play(sound);
 		}
 		
