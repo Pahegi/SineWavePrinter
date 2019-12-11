@@ -10,11 +10,19 @@ import java.util.ArrayList;
 
 public class Printer {
 
-	static final double startfrequency = 19000;
-	static final double endfrequency = 21000;
-	static final double pixeltime = 0.8;
-	static final double amplitude = 1;
-	static final double minPixWidth = 10;
+	private double startfrequency = 19000;
+	private double endfrequency = 21000;
+	private double pixeltime = 0.8;
+	private double amplitude = 1;
+	private double minPixWidth = 10;
+	
+	public Printer(double startfrequency, double endfrequency, double pixeltime, double amplitude, double minPixWidth) {
+		this.startfrequency = startfrequency;
+		this.endfrequency = endfrequency;
+		this.pixeltime = pixeltime;
+		this.amplitude = amplitude;
+		this.minPixWidth = minPixWidth;
+	}
 	
 	public void printAudio(double[][] image) {
 		
