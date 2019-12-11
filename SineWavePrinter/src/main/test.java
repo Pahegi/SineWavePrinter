@@ -1,26 +1,11 @@
 package main;
-import main.StdAudio;
 
 public class test {
 
 	public static void main(String args[]) {
+		ImageReader imageReader = new ImageReader();
 		Printer audioPrinter = new Printer();
-		double[][] picture =
-		{
-			{1,0,0,1,0,0,1,0},
-			{1,0,0,1,0,0,1,0},
-			{1,0,0,1,0,0,1,0},
-			{1,1,1,1,0,0,1,0},
-			{1,0,0,1,0,0,1,0},
-			{1,0,0,1,0,0,1,0},
-			{1,0,0,1,0,0,1,0},
-			{1,0,0,1,0,0,1,0}
-		};
-		try {
-			audioPrinter.printAudio(picture);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		double[][] imageArr = imageReader.readImageToArr("chaos.png");
+		audioPrinter.printAudio(imageArr);
 	}
-	
 }

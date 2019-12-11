@@ -16,7 +16,7 @@ public class Printer {
 	static final double amplitude = 1;
 	static final double minPixWidth = 10;
 	
-	public void printAudio(double[][] image) throws Exception {
+	public void printAudio(double[][] image) {
 		
 		//get size of picture
 		int sizex = image.length;
@@ -29,7 +29,10 @@ public class Printer {
 		//check, if enough pixels are available in frequency spectrum
 		double frequencySpectrum = endfrequency - startfrequency;
 		int possiblePixels = (int) Math.floor(frequencySpectrum / minPixWidth);
-		if (sizex > possiblePixels) throw new Exception("Picture to big / not enough frequency width");
+		if (sizex > possiblePixels) {
+			System.err.println("Picture to big / not enough frequency width");
+			return;
+		}
 		
 		//save frequencies for x-spectrum in array
 		double[] pixelfrequencies = new double[sizey];
