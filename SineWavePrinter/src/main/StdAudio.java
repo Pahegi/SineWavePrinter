@@ -1,5 +1,8 @@
 package main;
 
+import java.io.File;
+import java.io.IOException;
+
 /*************************************************************************
  *  Compilation:  javac this.java
  *  Execution:    java StdAudio
@@ -128,8 +131,7 @@ public final class StdAudio {
         int N = (int) (this.SAMPLE_RATE * duration);
         double[] a = new double[N + 1];
         for (int i = 0; i <= N; i++)
-            a[i] = amplitude
-                    * Math.sin(2 * Math.PI * i * hz / this.SAMPLE_RATE);
+            a[i] = amplitude * Math.sin(2 * Math.PI * i * hz / this.SAMPLE_RATE);
         return a;
     }
     
@@ -140,8 +142,7 @@ public final class StdAudio {
         for (int i = 0; i <= N; i++) {
             a[i] = 0;
             for (int j = 0; j < hzs.length; j++)
-                a[i] += amplitude
-                        * Math.sin(2 * Math.PI * i * hzs[j] / SAMPLE_RATE);
+                a[i] += amplitude * Math.sin(2 * Math.PI * i * hzs[j] / SAMPLE_RATE);
         }
         return a;
     }
@@ -153,10 +154,44 @@ public final class StdAudio {
         for (int i = 0; i <= N; i++) {
             sum = 0;
             for (int j = 0; j < hzs.length; j++)
-                sum += amplitude
-                        * Math.sin(2 * Math.PI * i * hzs[j] / SAMPLE_RATE);
+                sum += amplitude * Math.sin(2 * Math.PI * i * hzs[j] / SAMPLE_RATE);
             this.play(sum);
         }
+    }
+    
+    /**
+     * 
+     * @param hzs : array of frequencies to be played
+     * @param opacitys : twodimensional array of opacitys of frequencies
+     * @param pixelduration : duration of single opacity-rows
+     * @param amplitude : general amplitude
+     * @return Array of Audiosamples
+     */
+    public double[] multiplePlayCols(double[] hzs, double[][] opacitys, double pixelduration, double amplitude) {
+        System.out.println("Opacity x: " + opacitys.length + " Opacity y: " + opacitys[0].length);
+        System.out.println("SAMPLE_RATE: " + SAMPLE_RATE + " hzs.length: " + hzs.length);
+    	int N = (int) (SAMPLE_RATE * pixelduration * opacitys.length);
+    	System.out.println("N: " + N);
+    	amplitude = amplitude / hzs.length;
+        double[] a = new double[N + 1];
+        double samplesum = 0;
+        int row = 0;
+        for (int i = 0; i <= N; i++) {
+            samplesum = 0;
+            for (int j = 0; j < hzs.length; j++) {
+            	samplesum += amplitude * opacitys[row][j] * Math.sin((2 * Math.PI * i * hzs[j] / SAMPLE_RATE) % (2 * Math.PI));
+            }
+            a[i] = samplesum;
+            if ((i % (pixelduration * SAMPLE_RATE)) == 0 && i != 0) {
+            	row++;
+            	System.out.println("Calculated row " + row + " of " + hzs.length);
+            }
+        }
+        return a;
+    }
+    
+    public int getSampleRate() {
+    	return SAMPLE_RATE;
     }
 
 }

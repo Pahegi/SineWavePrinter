@@ -1,5 +1,7 @@
 package main;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 
 /*
@@ -10,11 +12,13 @@ import java.util.ArrayList;
 
 public class Printer {
 
-	private double startfrequency = 19000;
-	private double endfrequency = 21000;
-	private double pixeltime = 0.8;
-	private double amplitude = 1;
-	private double minPixWidth = 10;
+	private double startfrequency;
+	private double endfrequency;
+	private double pixeltime;
+	private double amplitude;
+	private double minPixWidth;
+	
+	private double frequencySpectrum;
 	
 	public Printer(double startfrequency, double endfrequency, double pixeltime, double amplitude, double minPixWidth) {
 		this.startfrequency = startfrequency;
@@ -22,6 +26,69 @@ public class Printer {
 		this.pixeltime = pixeltime;
 		this.amplitude = amplitude;
 		this.minPixWidth = minPixWidth;
+		
+		frequencySpectrum = endfrequency - startfrequency;
+	}
+	
+	private void checkFrequencyWidth(int imgwidth) {
+		int possiblePixels = (int) Math.floor(frequencySpectrum / minPixWidth);
+		if (imgwidth > possiblePixels) {
+			System.err.println("Picture to big / not enough frequency width");
+			System.exit(1);
+		}
+	}
+	
+	private double[] generateFreqSpectrum(int imgwidth) {
+		double[] pixelfrequencies = new double[imgwidth];
+		double pixelWidth = Math.floor(frequencySpectrum / (double) imgwidth);
+		for (int i = 0; i < imgwidth; i++) {
+			pixelfrequencies[i] = startfrequency + i*pixelWidth;
+		}
+		return pixelfrequencies;
+	}
+	
+	public void playAudioAdvanced(double[][] image) {
+		
+		//get size of picture
+		int width = image.length;
+		int height = image[0].length;
+
+		System.out.println("width " + width);
+		System.out.println("height " + height);
+				
+		checkFrequencyWidth(width);
+		
+		double[] pixelfrequencies = generateFreqSpectrum(width);
+		
+		StdAudio audio = new StdAudio();
+		
+		double[] audioBuffer = audio.multiplePlayCols(pixelfrequencies, image, pixeltime, amplitude);
+		
+		System.out.println("Finished Buffer calculation");
+		
+		audio.play(audioBuffer);
+		
+	}
+	
+	public void saveAudioAdvanced(double[][] image, String path) {
+		//get size of picture
+		int width = image.length;
+		int height = image[0].length;
+
+		System.out.println("width " + width);
+		System.out.println("height " + height);
+						
+		checkFrequencyWidth(width);
+				
+		double[] pixelfrequencies = generateFreqSpectrum(width);
+				
+		StdAudio audio = new StdAudio();
+				
+		double[] audioBuffer = audio.multiplePlayCols(pixelfrequencies, image, pixeltime, amplitude);
+				
+		System.out.println("Finished Buffer calculation");
+		
+		this.saveWave(audioBuffer, path, audio.getSampleRate());
 	}
 	
 	public void printAudio(double[][] image) {
@@ -33,21 +100,10 @@ public class Printer {
 		System.out.println("sizex " + sizex);
 		System.out.println("sizey " + sizey);
 		
-		
-		//check, if enough pixels are available in frequency spectrum
-		double frequencySpectrum = endfrequency - startfrequency;
-		int possiblePixels = (int) Math.floor(frequencySpectrum / minPixWidth);
-		if (sizex > possiblePixels) {
-			System.err.println("Picture to big / not enough frequency width");
-			return;
-		}
+		checkFrequencyWidth(sizex);
 		
 		//save frequencies for x-spectrum in array
-		double[] pixelfrequencies = new double[sizey];
-		double pixelWidth = Math.floor(frequencySpectrum / (double) sizey);
-		for (int i = 0; i < sizey; i++) {
-			pixelfrequencies[i] = startfrequency + i*pixelWidth;
-		}
+		double[] pixelfrequencies = generateFreqSpectrum(sizey);
 		
 		//save all frequencies in Array of ArrayLists of doubles
 		StdAudio audio = new StdAudio();
@@ -70,7 +126,20 @@ public class Printer {
 			final double[] sound = audio.multipleNotes(freqArrays.get(i), pixeltime, amplitude);
 			audio.play(sound);
 		}
-		
-		
 	}
+	
+	public void saveWave(double[] audioBuffer, String pathname, int sampleRate) {
+    	long numFrames = audioBuffer.length;
+    	try {
+			WavFile wavFile = WavFile.newWavFile(new File(pathname), 1, numFrames, 16, sampleRate);
+			
+			wavFile.writeFrames(audioBuffer, audioBuffer.length-1);
+			wavFile.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (WavFileException e) {
+			e.printStackTrace();
+		};
+    }
+	
 }
